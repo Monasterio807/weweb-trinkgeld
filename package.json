@@ -1,0 +1,9 @@
+{
+  "name": "weweb-trinkgeld",
+  "version": "1.0.0",
+  "description": "WeWeb Coded Component – Trinkgeld-Verteilung (rpc trinkgeld_verteilung, HRklar)",
+  "private": true,
+  "scripts": { "build": "weweb build", "serve": "weweb serve" },
+  "devDependencies": { "@weweb/cli": "latest" },
+  "license": "UNLICENSED"
+}
