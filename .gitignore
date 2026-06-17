@@ -1,4 +1,5 @@
 node_modules
-dist
 .DS_Store
 package-lock.json
+# dist/manager.js is tracked — WeWeb requires the pre-built bundle in the repo
+tmp-build

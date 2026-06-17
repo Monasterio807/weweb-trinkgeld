@@ -238,12 +238,12 @@ export default {
 
         // Normalisieren: Supabase gibt CASE-Column als "case" zurück
         const rows = Array.isArray(rpcData) ? rpcData : [];
+        // RPC returns TABLE(employee_id uuid, basis numeric, anteil_chf numeric)
         this.zeilen = rows.map((r, i) => ({
-          emp: r.emp,
-          bas: Number(r.bas ?? 0),
-          // Der dritte Spaltenname ist 'case' (unaliased CASE expression in PostgreSQL)
-          anteil: Number(r['case'] ?? r.anteil ?? r.chf ?? 0),
-          name: nameMap[r.emp] || `Mitarbeiter:in ${i + 1}`,
+          emp: r.employee_id,
+          bas: Number(r.basis ?? 0),
+          anteil: Number(r.anteil_chf ?? 0),
+          name: nameMap[r.employee_id] || `Mitarbeiter:in ${i + 1}`,
           _idx: i,
         }));
 
@@ -299,29 +299,29 @@ export default {
   --hrk-bordeaux:        #7B2D3B;
   --hrk-bordeaux-dark:   #5E2129;
   --hrk-bordeaux-soft:   #F3E7E9;
-  --hrk-creme:           #FAF6F0;
+  --hrk-creme:           #FBF8F3;
   --hrk-anthrazit:       #2C2C2C;
   --hrk-surface:         #FFFFFF;
   --hrk-surface-muted:   #F5F1EC;
-  --hrk-border:          #E8E2DA;
-  --hrk-border-strong:   #C8BFB5;
+  --hrk-border:          #ECE5D9;
+  --hrk-border-strong:   #DAD2C6;
   --hrk-text:            #2C2C2C;
-  --hrk-text-muted:      #7A736B;
+  --hrk-text-muted:      #6B6357;
   --hrk-success:         #2D6A4F; --hrk-success-bg: #D8F3DC;
   --hrk-warning:         #7D5200; --hrk-warning-bg: #FFF3CD;
   --hrk-danger:          #9B2335; --hrk-danger-bg:  #FDECEA;
   --hrk-info:            #1A5276;  --hrk-info-bg:    #D6EAF8;
   --hrk-neutral:         #5A5450; --hrk-neutral-bg: #EDEAE6;
-  --hrk-font-head: 'Georgia', 'Times New Roman', serif;
+  --hrk-font-head: "Fraunces", "Lora", Georgia, serif;
   --hrk-font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  --hrk-fs-h1: 1.875rem; --hrk-fs-h2: 1.375rem; --hrk-fs-h3: 1.125rem;
-  --hrk-fs-body: 1rem;   --hrk-fs-small: .875rem;
+  --hrk-fs-h1: 1.9375rem; --hrk-fs-h2: 1.375rem; --hrk-fs-h3: 1.125rem;
+  --hrk-fs-body: 1.0625rem;   --hrk-fs-small: .875rem;
   --hrk-fw-medium: 500;  --hrk-fw-semibold: 600;
   --hrk-lh-body: 1.6;
   --hrk-space-1: 4px;  --hrk-space-2: 8px;  --hrk-space-3: 12px;
   --hrk-space-4: 16px; --hrk-space-5: 24px; --hrk-space-6: 32px; --hrk-space-7: 48px;
-  --hrk-radius-sm: 8px; --hrk-radius-md: 12px; --hrk-radius-lg: 16px; --hrk-radius-pill: 999px;
-  --hrk-shadow-card: 0 1px 2px rgba(80,30,40,.05), 0 6px 24px rgba(80,30,40,.07);
+  --hrk-radius-sm: 8px; --hrk-radius-md: 12px; --hrk-radius-lg: 14px; --hrk-radius-pill: 999px;
+  --hrk-shadow-card: 0 1px 2px rgba(40,35,30,.05);
   --hrk-focus-ring: 0 0 0 3px rgba(123,45,59,.30);
   --hrk-tap-min: 44px;
   --hrk-page-max: 880px;
@@ -358,9 +358,12 @@ export default {
 .hrk-actions { display: flex; flex-wrap: wrap; gap: var(--hrk-space-3); }
 .hrk-card { background: var(--hrk-surface); border: 1px solid var(--hrk-border); border-radius: var(--hrk-radius-lg); box-shadow: var(--hrk-shadow-card); padding: var(--hrk-space-5); }
 .hrk-card + .hrk-card { margin-top: var(--hrk-space-4); }
-.hrk-badge { display: inline-flex; align-items: center; gap: var(--hrk-space-1); padding: 2px var(--hrk-space-3); border-radius: var(--hrk-radius-pill); font-size: var(--hrk-fs-small); font-weight: var(--hrk-fw-semibold); white-space: nowrap; }
-.hrk-badge--success { color: var(--hrk-success); background: var(--hrk-success-bg); }
-.hrk-badge--neutral { color: var(--hrk-neutral); background: var(--hrk-neutral-bg); }
+.hrk-badge { display: inline-flex; align-items: center; gap: var(--hrk-space-2);
+  padding: 0; border-radius: 0; background: none;
+  font-size: var(--hrk-fs-small); font-weight: var(--hrk-fw-semibold); line-height: 1.6; white-space: nowrap; }
+.hrk-badge::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.hrk-badge--success { color: var(--hrk-success); }
+.hrk-badge--neutral { color: var(--hrk-neutral); }
 .hrk-note { border-left: 4px solid var(--hrk-info); background: var(--hrk-info-bg); padding: var(--hrk-space-3) var(--hrk-space-4); border-radius: var(--hrk-radius-sm); }
 .hrk-note--danger { border-left-color: var(--hrk-danger); background: var(--hrk-danger-bg); }
 .hrk-note--muted  { border-left-color: var(--hrk-border-strong); background: var(--hrk-surface-muted); color: var(--hrk-text-muted); }
@@ -395,7 +398,7 @@ export default {
 .tgv-total td { background: var(--hrk-bordeaux-soft) !important; }
 
 @media (max-width: 600px) {
-  :root, .hrk-root { --hrk-fs-h1: 1.5rem; }
+  :root, .hrk-root { --hrk-fs-h1: 1.625rem; }
   .hrk-page { padding: var(--hrk-space-4) var(--hrk-space-3); }
   .tgv-form-grid { grid-template-columns: 1fr; }
   .tgv-methode { grid-template-columns: 1fr; }
