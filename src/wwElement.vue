@@ -59,7 +59,7 @@
         </section>
 
         <!-- Fehler -->
-        <div v-if="errorMsg" class="hrk-note hrk-note--danger" style="margin-top:var(--hrk-space-4)">
+        <div v-if="errorMsg" class="hrk-note hrk-note--danger" role="alert" style="margin-top:var(--hrk-space-4)">
           <strong>Fehler:</strong> {{ errorMsg }}
         </div>
 
