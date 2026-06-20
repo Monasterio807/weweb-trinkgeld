@@ -158,7 +158,7 @@ export default {
   },
   computed: {
     baseUrl() {
-      const u = this.content?.supabaseUrl || 'https://nemxnflngcfrpamkuesm.supabase.co';
+      const u = this.content?.supabaseUrl || 'https://ztvqsxdudzdyqgeylujr.supabase.co';
       return String(u).replace(/\/+$/, '');
     },
     authToken() { return (this.content?.authToken || '').toString().trim(); },

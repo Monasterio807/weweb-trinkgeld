@@ -25,7 +25,7 @@ export default {
     supabaseUrl: {
       label: { en: 'Supabase URL', de: 'Supabase URL' },
       type: 'Text', section: 'settings', bindable: true,
-      defaultValue: 'https://nemxnflngcfrpamkuesm.supabase.co',
+      defaultValue: 'https://ztvqsxdudzdyqgeylujr.supabase.co',
     },
     betragVorgabe: {
       label: { en: 'Preset amount (CHF)', de: 'Vorgegebener Betrag (CHF)' },
