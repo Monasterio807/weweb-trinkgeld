@@ -193,6 +193,16 @@ export default {
     fid(s) { return `tgv-${s}-${this.uid || 'x'}`; },
     emit(name, payload) { this.$emit('trigger-event', { name, event: payload || {} }); },
 
+    async fetchWithTimeout(url, options = {}, timeout = 10000) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), timeout);
+      try {
+        return await fetch(url, { ...options, signal: controller.signal });
+      } finally {
+        clearTimeout(tid);
+      }
+    },
+
     async berechnen() {
       if (!this.canCalc) return;
       this.loading = true;
@@ -208,10 +218,10 @@ export default {
           p_methode: this.methode,
         });
         const [rpcRes, empRes] = await Promise.all([
-          fetch(`${this.baseUrl}/rest/v1/rpc/trinkgeld_verteilung`, {
+          this.fetchWithTimeout(`${this.baseUrl}/rest/v1/rpc/trinkgeld_verteilung`, {
             method: 'POST', headers: this.authHeaders, body: rpcBody,
           }),
-          fetch(`${this.baseUrl}/rest/v1/employees?select=id,firstname,lastname&status=eq.aktiv`, {
+          this.fetchWithTimeout(`${this.baseUrl}/rest/v1/employees?select=id,firstname,lastname&status=eq.aktiv`, {
             headers: { apikey: this.apiKey, Authorization: this.authHeaders.Authorization },
           }),
         ]);

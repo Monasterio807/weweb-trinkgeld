@@ -3,3 +3,6 @@ node_modules
 package-lock.json
 # dist/manager.js is tracked — WeWeb requires the pre-built bundle in the repo
 tmp-build
+
+# Claude Code Tooling
+.claude/
