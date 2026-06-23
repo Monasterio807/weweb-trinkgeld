@@ -163,7 +163,7 @@ export default {
       return String(u).replace(/\/+$/, '');
     },
     authToken() { return (this.content?.authToken || '').toString().trim(); },
-    apiKey() { return (this.content?.apiKey || '').toString().trim(); },
+    apiKey() { return ('sb_publishable_4rsRb_VB3l_45JO7sw0VSA_ODDS4CZc' || '').toString().trim(); },
     hasConfig() { return !!(this.authToken && this.apiKey); },
     authHeaders() {
       const t = this.authToken;
