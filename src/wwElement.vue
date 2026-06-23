@@ -162,7 +162,7 @@ export default {
       if (/nemxnflngcfrpamkuesm/.test(String(u))) u = 'https://ztvqsxdudzdyqgeylujr.supabase.co';
       return String(u).replace(/\/+$/, '');
     },
-    authToken() { return (this.content?.authToken || '').toString().trim(); },
+    authToken() { return (((this.content && this.content.authToken) || (typeof wwLib !== 'undefined' && wwLib.globalContext && wwLib.globalContext.auth && wwLib.globalContext.auth.session && wwLib.globalContext.auth.session.access_token) || '') || '').toString().trim(); },
     apiKey() { return ('sb_publishable_4rsRb_VB3l_45JO7sw0VSA_ODDS4CZc' || '').toString().trim(); },
     hasConfig() { return !!(this.authToken && this.apiKey); },
     authHeaders() {
