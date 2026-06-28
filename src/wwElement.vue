@@ -232,7 +232,7 @@ export default {
           if (rpcRes.status === 401) {
             this.errorMsg = 'Du bist nicht eingeloggt. Melde dich bitte neu an.';
           } else {
-            this.errorMsg = `Berechnung fehlgeschlagen (${rpcRes.status}): ${detail.substring(0, 120)}`;
+            this.errorMsg = 'Berechnung hat nicht geklappt — versuch es bitte nochmal.';
           }
           this.emit('error', { reason: 'rpc', status: rpcRes.status });
           return;
