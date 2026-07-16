@@ -162,7 +162,31 @@ export default {
       if (/nemxnflngcfrpamkuesm/.test(String(u))) u = 'https://ztvqsxdudzdyqgeylujr.supabase.co';
       return String(u).replace(/\/+$/, '');
     },
-    authToken() { return (((this.content && this.content.authToken) || (typeof wwLib !== 'undefined' && wwLib.globalContext && wwLib.globalContext.auth && wwLib.globalContext.auth.session && wwLib.globalContext.auth.session.access_token) || '') || '').toString().trim(); },
+    // Token zuerst aus der Property (WeWeb-Binding). Faellt die leer/veraltet aus (das Prop-Binding
+    // hinkt nach Login/Refresh hinterher), nehmen wir die LIVE-Session aus dem WeWeb-Auth-Kontext
+    // bzw. die persistierte Supabase-Session. So sendet die Komponente denselben frischen User-JWT.
+    authToken() {
+      const fromProp = ((this.content && this.content.authToken) || '').toString().trim();
+      if (fromProp) return fromProp;
+      try {
+        const auth = (typeof wwLib !== 'undefined' && wwLib.globalContext && wwLib.globalContext.auth) ? wwLib.globalContext.auth : null;
+        const at = auth && auth.session && auth.session.access_token;
+        if (at) return String(at).trim();
+      } catch (e) { /* ignore */ }
+      try {
+        const win = (typeof wwLib !== 'undefined' && wwLib.getFrontWindow) ? wwLib.getFrontWindow() : (typeof window !== 'undefined' ? window : null);
+        const ls = win && win.localStorage;
+        if (ls) {
+          const raw = ls.getItem('sb-ztvqsxdudzdyqgeylujr-auth-token');
+          if (raw) {
+            const o = JSON.parse(raw);
+            const at = (o && o.access_token) || (o && o.currentSession && o.currentSession.access_token);
+            if (at) return String(at).trim();
+          }
+        }
+      } catch (e) { /* ignore */ }
+      return '';
+    },
     apiKey() { return ('sb_publishable_4rsRb_VB3l_45JO7sw0VSA_ODDS4CZc' || '').toString().trim(); },
     hasConfig() { return !!(this.authToken && this.apiKey); },
     authHeaders() {
@@ -204,6 +228,62 @@ export default {
       }
     },
 
+    // Nur die Auth-Header mit frisch gelesenem Token — ohne Content-Type,
+    // damit jeder Aufruf seine eigenen Header behaelt.
+    authOnlyHeaders(token) {
+      const t = (token || this.authToken || '').toString();
+      return {
+        apikey: this.apiKey,
+        Authorization: t.startsWith('Bearer ') ? t : `Bearer ${t}`,
+      };
+    },
+
+    // Bei 401 das Supabase-Token via GoTrue (refresh_token) erneuern und die Session zurueckschreiben.
+    async _refreshAuthToken() {
+      try {
+        const auth = (typeof wwLib !== 'undefined' && wwLib.globalContext && wwLib.globalContext.auth) ? wwLib.globalContext.auth : null;
+        const rt = auth && auth.session && auth.session.refresh_token;
+        if (!rt || !this.apiKey) return '';
+        const res = await this.fetchWithTimeout(`${this.baseUrl}/auth/v1/token?grant_type=refresh_token`, {
+          method: 'POST',
+          headers: { apikey: this.apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: rt }),
+        });
+        if (!res.ok) return '';
+        const ns = await res.json().catch(() => null);
+        if (!ns || !ns.access_token) return '';
+        try {
+          const win = (typeof wwLib !== 'undefined' && wwLib.getFrontWindow) ? wwLib.getFrontWindow() : (typeof window !== 'undefined' ? window : null);
+          const ls = win && win.localStorage;
+          const wwSess = { access_token: ns.access_token, token_type: ns.token_type, expires_in: ns.expires_in, expires_at: ns.expires_at, refresh_token: ns.refresh_token };
+          if (ls) {
+            ls.setItem('ww-auth-session', JSON.stringify(wwSess));
+            const ref = ((String(this.baseUrl || '').match(/https?:\/\/([a-z0-9]+)\.supabase\.co/i) || [])[1]) || 'ztvqsxdudzdyqgeylujr';
+            const k = `sb-${ref}-auth-token`;
+            const cur = JSON.parse(ls.getItem(k) || '{}');
+            ls.setItem(k, JSON.stringify(Object.assign(cur, wwSess, { user: ns.user || cur.user })));
+          }
+          if (auth && auth.session) Object.assign(auth.session, wwSess);
+        } catch (e) { /* Writeback best-effort */ }
+        return ns.access_token;
+      } catch (e) { return ''; }
+    },
+
+    // Zentraler authentisierter Fetch: Token live + bei 401 einmalig Refresh + Retry.
+    async authedFetch(url, options, ms) {
+      const opts = options || {};
+      const merged = Object.assign({}, opts, { headers: Object.assign({}, opts.headers || {}, this.authOnlyHeaders()) });
+      let res = await this.fetchWithTimeout(url, merged, ms);
+      if (res && res.status === 401) {
+        const fresh = await this._refreshAuthToken();
+        if (fresh) {
+          const retry = Object.assign({}, opts, { headers: Object.assign({}, opts.headers || {}, this.authOnlyHeaders(fresh)) });
+          res = await this.fetchWithTimeout(url, retry, ms);
+        }
+      }
+      return res;
+    },
+
     async berechnen() {
       if (!this.canCalc) return;
       this.loading = true;
@@ -219,10 +299,10 @@ export default {
           p_methode: this.methode,
         });
         const [rpcRes, empRes] = await Promise.all([
-          this.fetchWithTimeout(`${this.baseUrl}/rest/v1/rpc/trinkgeld_verteilung`, {
+          this.authedFetch(`${this.baseUrl}/rest/v1/rpc/trinkgeld_verteilung`, {
             method: 'POST', headers: this.authHeaders, body: rpcBody,
           }),
-          this.fetchWithTimeout(`${this.baseUrl}/rest/v1/employees?select=id,firstname,lastname&status=eq.aktiv`, {
+          this.authedFetch(`${this.baseUrl}/rest/v1/employees?select=id,firstname,lastname&status=eq.aktiv`, {
             headers: { apikey: this.apiKey, Authorization: this.authHeaders.Authorization },
           }),
         ]);
