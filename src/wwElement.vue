@@ -187,7 +187,7 @@ export default {
       } catch (e) { /* ignore */ }
       return '';
     },
-    apiKey() { return ('sb_publishable_4rsRb_VB3l_45JO7sw0VSA_ODDS4CZc' || '').toString().trim(); },
+    apiKey() { return String((this.content && this.content.apiKey) || '').trim(); },
     hasConfig() { return !!(this.authToken && this.apiKey); },
     authHeaders() {
       const t = this.authToken;
