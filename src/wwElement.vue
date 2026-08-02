@@ -302,7 +302,7 @@ export default {
           this.authedFetch(`${this.baseUrl}/rest/v1/rpc/trinkgeld_verteilung`, {
             method: 'POST', headers: this.authHeaders, body: rpcBody,
           }),
-          this.authedFetch(`${this.baseUrl}/rest/v1/employees?select=id,firstname,lastname&status=eq.aktiv`, {
+          this.authedFetch(`${this.baseUrl}/rest/v1/rpc/get_user_employees?select=id,firstname,lastname&status=eq.aktiv`, {
             headers: { apikey: this.apiKey, Authorization: this.authHeaders.Authorization },
           }),
         ]);
