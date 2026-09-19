@@ -31,8 +31,8 @@
 
           <!-- Methode -->
           <div class="hrk-field">
-            <p class="hrk-label" style="margin-bottom:var(--hrk-space-2)">Verteilungsmethode</p>
-            <div class="tgv-methode">
+            <p :id="fid('methode-label')" class="hrk-label" style="margin-bottom:var(--hrk-space-2)">Verteilungsmethode</p>
+            <div class="tgv-methode" role="radiogroup" :aria-labelledby="fid('methode-label')">
               <label class="hrk-radio" :class="methode === 'tage' ? 'hrk-radio--selected' : ''">
                 <input v-model="methode" type="radio" value="tage" />
                 <span class="hrk-radio__body">
