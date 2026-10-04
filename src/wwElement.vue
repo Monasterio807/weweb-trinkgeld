@@ -4,13 +4,13 @@
       <!-- Kopf -->
       <header class="tgv-head">
         <h1 class="hrk-h1">Trinkgeld-Verteilung</h1>
-        <p class="hrk-muted">Gib den Gesamtbetrag und den Monat ein — wir verteilen proportional nach geleisteten Stunden oder Tagen (aus der Zeiterfassung).</p>
+        <p class="hrk-muted">Gib den Gesamtbetrag und den Monat ein. Wir verteilen proportional nach geleisteten Stunden oder Tagen (aus der Zeiterfassung).</p>
       </header>
 
       <!-- Nicht eingeloggt -->
       <div v-if="!hasConfig" class="hrk-state">
         <p class="hrk-state__title">Kein Zugang konfiguriert</p>
-        <p class="hrk-muted">Bitte authToken und apiKey in den Komponenten-Einstellungen hinterlegen.</p>
+        <p class="hrk-muted">Du bist nicht angemeldet, oder deine Sitzung ist abgelaufen. Melde dich neu an oder lade die Seite neu.</p>
       </div>
 
       <template v-else>
@@ -37,7 +37,7 @@
                 <input v-model="methode" type="radio" value="tage" />
                 <span class="hrk-radio__body">
                   <span class="hrk-radio__title">Nach Arbeitstagen</span>
-                  <span class="hrk-radio__hint">Anzahl Tage mit Zeiterfassung im Monat — einfach und gerecht.</span>
+                  <span class="hrk-radio__hint">Anzahl Tage mit Zeiterfassung im Monat. Einfach und gerecht.</span>
                 </span>
               </label>
               <label class="hrk-radio" :class="methode === 'stunden' ? 'hrk-radio--selected' : ''">
@@ -114,7 +114,7 @@
             Differenz von CHF {{ formatChf(Math.abs(betrag - totalAusgezahlt)) }} durch Runden (auf Rappen).
           </p>
           <p v-else class="hrk-hint" style="margin-top:var(--hrk-space-3)">
-            ✓ Summe stimmt — kein Rundungsfehler.
+            ✓ Summe stimmt. Kein Rundungsfehler.
           </p>
         </section>
 
@@ -312,7 +312,7 @@ export default {
           if (rpcRes.status === 401) {
             this.errorMsg = 'Du bist nicht eingeloggt. Melde dich bitte neu an.';
           } else {
-            this.errorMsg = 'Berechnung hat nicht geklappt — versuch es bitte nochmal.';
+            this.errorMsg = 'Die Berechnung hat nicht geklappt. Versuch es bitte nochmal.';
           }
           this.emit('error', { reason: 'rpc', status: rpcRes.status });
           return;
