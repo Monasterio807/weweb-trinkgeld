@@ -70,14 +70,14 @@
         </div>
 
         <!-- Ergebnistabelle -->
-        <section v-if="!loading && zeilen.length" class="hrk-card tgv-result" aria-live="polite">
+        <section v-if="!loading && result && zeilen.length" class="hrk-card tgv-result" aria-live="polite">
           <div class="tgv-result-head">
-            <h2 class="hrk-h3" style="margin:0">Verteilung {{ formatMonat(yearMonth) }}</h2>
-            <span class="hrk-badge hrk-badge--success">CHF {{ formatChf(betrag) }}</span>
+            <h2 class="hrk-h3" style="margin:0">Verteilung {{ formatMonat(result.yearMonth) }}</h2>
+            <span class="hrk-badge hrk-badge--success">CHF {{ formatChf(result.betrag) }}</span>
           </div>
 
           <div class="hrk-note hrk-note--muted" style="margin:var(--hrk-space-3) 0">
-            Methode: {{ methode === 'stunden' ? 'Arbeitsstunden' : 'Arbeitstage' }} · {{ zeilen.length }} {{ zeilen.length === 1 ? 'Mitarbeiter:in' : 'Mitarbeitende' }}
+            Methode: {{ result.methode === 'stunden' ? 'Arbeitsstunden' : 'Arbeitstage' }} · {{ zeilen.length }} {{ zeilen.length === 1 ? 'Mitarbeiter:in' : 'Mitarbeitende' }}
           </div>
 
           <div class="tgv-table-wrap">
@@ -85,7 +85,7 @@
               <thead>
                 <tr>
                   <th>Mitarbeiter:in</th>
-                  <th class="tgv-num">{{ methode === 'stunden' ? 'Stunden' : 'Tage' }}</th>
+                  <th class="tgv-num">{{ result.methode === 'stunden' ? 'Stunden' : 'Tage' }}</th>
                   <th class="tgv-num">Anteil CHF</th>
                   <th class="tgv-num">%</th>
                 </tr>
@@ -110,8 +110,8 @@
           </div>
 
           <!-- Rundungs-Hinweis -->
-          <p v-if="Math.abs(totalAusgezahlt - betrag) >= 0.01" class="hrk-hint" style="margin-top:var(--hrk-space-3)">
-            Differenz von CHF {{ formatChf(Math.abs(betrag - totalAusgezahlt)) }} durch Runden (auf Rappen).
+          <p v-if="Math.abs(totalAusgezahlt - result.betrag) >= 0.01" class="hrk-hint" style="margin-top:var(--hrk-space-3)">
+            Differenz von CHF {{ formatChf(Math.abs(result.betrag - totalAusgezahlt)) }} durch Runden (auf Rappen).
           </p>
           <p v-else class="hrk-hint" style="margin-top:var(--hrk-space-3)">
             ✓ Summe stimmt. Kein Rundungsfehler.
@@ -119,8 +119,8 @@
         </section>
 
         <!-- Leer-Zustand -->
-        <div v-if="!loading && didCalc && !zeilen.length && !errorMsg" class="hrk-empty">
-          Keine Zeiterfassung für {{ formatMonat(yearMonth) }} gefunden. Bitte prüf, ob für diesen Monat Einträge in der Zeiterfassung vorhanden sind.
+        <div v-if="!loading && didCalc && result && !zeilen.length && !errorMsg" class="hrk-empty">
+          Keine Zeiterfassung für {{ formatMonat(result.yearMonth) }} gefunden. Bitte prüf, ob für diesen Monat Einträge in der Zeiterfassung vorhanden sind.
         </div>
       </template>
     </main>
@@ -153,6 +153,9 @@ export default {
       loading: false,
       errorMsg: '',
       zeilen: [],
+      // Momentaufnahme der Eingaben, mit denen zeilen berechnet wurden. Die
+      // Ergebnisanzeige liest nur daraus, nicht aus den Live-Eingaben.
+      result: null,
       didCalc: false,
     };
   },
@@ -289,14 +292,21 @@ export default {
       this.loading = true;
       this.errorMsg = '';
       this.zeilen = [];
+      this.result = null;
       this.didCalc = false;
 
       try {
+        // Eingaben zum Zeitpunkt des Berechnens festhalten.
+        const eingabe = {
+          yearMonth: this.yearMonth,
+          betrag: Number(this.betrag),
+          methode: this.methode,
+        };
         // 1) RPC trinkgeld_verteilung
         const rpcBody = JSON.stringify({
-          p_year_month: this.yearMonth,
-          p_betrag: Number(this.betrag),
-          p_methode: this.methode,
+          p_year_month: eingabe.yearMonth,
+          p_betrag: eingabe.betrag,
+          p_methode: eingabe.methode,
         });
         const [rpcRes, empRes] = await Promise.all([
           this.authedFetch(`${this.baseUrl}/rest/v1/rpc/trinkgeld_verteilung`, {
@@ -338,6 +348,7 @@ export default {
           _idx: i,
         }));
 
+        this.result = eingabe;
         this.didCalc = true;
         this.emit('berechnet', { total: this.totalAusgezahlt, count: this.zeilen.length });
       } catch (e) {
@@ -366,7 +377,8 @@ export default {
     },
     formatBasis(v) {
       const n = Number(v) || 0;
-      if (this.methode === 'stunden') {
+      const methode = this.result ? this.result.methode : this.methode;
+      if (methode === 'stunden') {
         // Dezimalstunden → Std:Min
         const h = Math.floor(n);
         const min = Math.round((n - h) * 60);
