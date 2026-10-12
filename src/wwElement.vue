@@ -322,7 +322,7 @@ export default {
           if (rpcRes.status === 401) {
             this.errorMsg = 'Du bist nicht eingeloggt. Melde dich bitte neu an.';
           } else {
-            this.errorMsg = 'Die Berechnung hat nicht geklappt. Versuch es bitte nochmal.';
+            this.errorMsg = 'Die Berechnung hat nicht geklappt. Versuche es bitte nochmal.';
           }
           this.emit('error', { reason: 'rpc', status: rpcRes.status });
           return;
@@ -352,7 +352,7 @@ export default {
         this.didCalc = true;
         this.emit('berechnet', { total: this.totalAusgezahlt, count: this.zeilen.length });
       } catch (e) {
-        this.errorMsg = 'Keine Verbindung. Prüf dein Internet und versuch es nochmal.';
+        this.errorMsg = 'Keine Verbindung. Prüfe dein Internet und versuche es nochmal.';
         this.emit('error', { reason: 'network' });
       } finally {
         this.loading = false;
